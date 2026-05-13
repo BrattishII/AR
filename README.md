@@ -44,7 +44,6 @@ al entorno AR.
 Control Multimedia 
 Funciones personalizadas que gestionan el 
 play/pause de elementos de video y audio  
-Ricardo Linares Renedo - 1975336 - Procesamiento de Imagenes 051 
 4. Especificaciones Técnicas 
 ● Framework AR: A-Frame + MindAR.js. 
 ● Lenguaje: JavaScript ES6+, HTML5 y CSS3 (Glassmorphism). 
@@ -77,7 +76,6 @@ en un punto impredecible.
 ● Control de Dificultad: El código incluye un sistema de temporizadores (setTimeout) 
 que reduce el tiempo de reacción disponible conforme el usuario aumenta su puntaje, 
 creando una curva de dificultad progresiva. 
-Ricardo Linares Renedo - 1975336 - Procesamiento de Imagenes 051 
 CODEX 
 1. Gestión de Modelos 3D y Multimedia 
 La aplicación utiliza una integración profunda entre el DOM de HTML y el motor A-Frame para 
@@ -112,7 +110,6 @@ para evitar errores de referencia nula.
 ● Persistencia de Datos: Las estadísticas del juego y la galería se mantienen en el estado 
 global de la sesión, permitiendo al usuario navegar entre diferentes países sin perder su 
 progreso acumulado en la sesión actual. 
-Ricardo Linares Renedo - 1975336 - Procesamiento de Imagenes 051 
 4. Renderizado y Mezcla de Capas 
 El desafío técnico de mostrar botones 2D sobre modelos 3D se resuelve mediante un Z-Index 
 superior en el contenedor UI y el uso de Glassmorphism en el CSS, lo que permite que el 
