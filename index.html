@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+ 
+  <!-- A-Frame -->
+  <!-- script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script> -->
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <!-- MindAR -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/aframe-particle-system-component@1.1.3/dist/aframe-particle-system-component.min.js"></script>
+  <style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+a-scene {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#ui {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #348300;
+  transition: all 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.9);
+  background-color: #FFD700;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+#videoContainer {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
+
+#videoContainer video {
+  pointer-events: auto;
+}
+
+#filtros {
+  position: fixed;
+  bottom: 80px; /* un poco arriba del #ui */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  z-index: 20;
+}
+#panelFlotante {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 80%;
+  max-width: 350px;
+  text-align: center;
+  z-index: 99999;
+  display: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px gold;
+}
+
+#panelFlotante.mostrar {
+  display: block;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#panelFlotante button {
+  margin-top: 15px;
+  background: gold;
+  color: black;
+}
+
+button.activo {
+  background-color: #FFD700;
+  box-shadow: 0 0 15px gold;
+}
+
+#panelFlotante h3 {
+  margin-top: 0;
+  font-size: 22px;
+  color: gold;
+  text-shadow: 0 0 6px rgba(255,215,0,0.8);
+}
+
+#panelFlotante p {
+  font-size: 16px;
+  line-height: 1.4;
+  margin: 8px 0;
+}
+
+#panelFlotante ul {
+  text-align: left;
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+#panelFlotante li {
+  margin-bottom: 6px;
+}
+
+#panelFlotante::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0,0,0,0.9),
+    rgba(0,60,0,0.85)
+  );
+  border-radius: 15px;
+  z-index: -1;
+}
+.resumen-mundial {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 90, 40, 0.9),
+    rgba(0, 40, 20, 0.9)
+  );
+  border: 2px solid gold;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  color: white;
+  text-align: center;
+  animation: aparecer 0.3s ease-out;
+}
+
+.resumen-mundial h3 {
+  margin: 0;
+  font-size: 22px;
+  color: gold;
+  text-shadow: 0 0 6px rgba(255,215,0,0.9);
+}
+
+.resumen-mundial p {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+@keyframes aparecer {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.resumen-detectado {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 60, 30, 0.9),
+    rgba(0, 30, 15, 0.9)
+  );
+  border: 2px solid gold;
+  border-radius: 12px;
+  padding: 14px 18px;
+  min-width: 240px;
+  max-width: 90%;
+  color: white;
+  text-align: center;
+  z-index: 15;
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.5);
+  animation: aparecerArriba 0.3s ease-out;
+}
+
+.resumen-detectado h3 {
+  margin: 0;
+  font-size: 20px;
+  color: gold;
+  text-shadow: 0 0 6px rgba(255,215,0,0.8);
+}
+
+.resumen-detectado p {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+@keyframes aparecerArriba {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+#btnGuia{
+  position: fixed;
+  top: 15px;
+  right: 15px;
+
+  z-index: 999999;
+
+  padding: 12px 18px;
+  font-size: 16px;
+
+  background: linear-gradient(135deg,#FFD700,#b8860b);
+  color: black;
+
+  border-radius: 30px;
+  border: none;
+
+  box-shadow: 0 0 15px gold;
+}
+
+#galeriaContainer{
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 85%;
+  max-height: 70%;
+
+  background: rgba(0,0,0,0.9);
+  color: white;
+
+  border-radius: 15px;
+  padding: 20px;
+
+  display: none;
+
+  z-index: 9999;
+}
+#btnFoto{
+  position: fixed;
+
+  bottom: 100px;
+  right: 4px;
+
+  z-index: 999999;
+
+  background: #FFD700;
+  color: black;
+
+  padding: 12px 16px;
+
+  border-radius: 30px;
+  border: none;
+
+  font-weight: bold;
+
+  box-shadow: 0 0 10px gold;
+}
+#btnGaleria{
+  position: fixed;
+    bottom: 100px;
+  left: 220px;
+
+  z-index: 999999;
+
+  background: #006847;
+  color: white;
+
+  padding: 12px 18px;
+  border-radius: 25px;
+  border: 2px solid gold;
+
+  font-weight: bold;
+}
+.galeriaScroll{
+  overflow-y: auto;
+  max-height: 450px;
+}
+
+.galeriaScroll img{
+  width: 100%;
+  margin-bottom: 15px;
+  border-radius: 10px;
+}
+
+.galeriaScroll{
+  overflow-y: auto;
+  max-height: 450px;
+}
+#galeria{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.galeriaScroll img{
+  width: 100%;
+  margin-bottom: 15px;
+  border-radius: 10px;
+}
+#btnJuego{
+position:fixed;
+top:20px;
+right:80px;
+z-index:999999;
+
+background:#ffcc00;
+color:black;
+
+padding:10px 15px;
+border-radius:20px;
+
+font-weight:bold;
+border:none;
+}
+#juegoContainer{
+
+position:fixed;
+top:0;
+left:0;
+
+width:100%;
+height:100%;
+
+background:rgba(0,0,0,0.9);
+
+color:white;
+
+display:none;
+
+z-index:999999;
+
+text-align:center;
+
+padding-top:80px;
+
+}
+
+#zonaJuego{
+
+position:relative;
+
+width:100%;
+height:60%;
+
+margin-top:40px;
+
+}
+
+.balon{
+
+position:absolute;
+
+font-size:40px;
+
+cursor:pointer;
+
+}
+#gameOverPanel{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.85);
+display:none;
+z-index:10000;
+color:white;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+font-family:sans-serif;
+text-align:center;
+}
+
+#gameOverPanel h1{
+
+font-size:50px;
+color:#FFD700;
+
+}
+
+#gameOverPanel button{
+
+margin:10px;
+padding:10px 20px;
+
+font-size:18px;
+
+border:none;
+border-radius:10px;
+
+background:#ffcc00;
+color:black;
+
+cursor:pointer;
+
+}
+#mensajeEscaneo{
+position: fixed;
+top: 5px;
+right: 110px; 
+
+background: rgba(0,150,0,0.85);
+color: white;
+
+padding: 10px 14px;
+border-radius: 10px;
+
+font-size: 10px;
+font-weight: bold;
+
+z-index: 9999;
+
+box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+</style>
+
+</head>
+<!-- apartir de aqui ya es el cuerpo-->
+<body>
+
+<div id="ui">
+  <button onclick="activarBoton(this); animar()">✨</button>
+  <button onclick="activarBoton(this); info()">Info</button>
+  <button onclick="activarBoton(this); trivia()">📋Triv</button>
+  <button onclick="activarBoton(this); estadisticas()">🏆Stats📊</button>
+ <button id="btnVideo" onclick="activarBoton(this); toggleVideo()">✨🎬</button>
+</div>
+<div id="videoContainer"></div>
+<!--GALERIA -->
+
+<div id="galeriaContainer">
+<div id="galeria"></div>
+  <h2>Galería Mundial</h2>
+
+  <div class="galeriaScroll">
+
+    <img src="IMG/arabia.jpg">
+    <img src="IMG/caboverde.jpg">
+    <img src="IMG/corea.jpg">
+    <img src="IMG/colombia.png">
+    
+    <img src="IMG/bandera de mexico.jpg">
+    <img src="IMG/espana.png">
+    <img src="IMG/japon.jpg">
+    <img src="IMG/repcheca.jpg">
+    
+    <img src="IMG/sudafrica.jpg">
+    <img src="IMG/tunez.jpg">
+    <img src="IMG/uruguay.jpg">
+    <img src="IMG/uzbekistan.jpg">
+ <video controls>
+  <source src="videos/corea.mp4" type="video/mp4">
+  </video>
+  </div>
+ 
+
+</div>
+<!--TERMINA GALERIA -->
+<div id="mensajeEscaneo">
+⚽ Escaneo mixto: Escanea la bandera
+ o logo(no todas las banderas
+  son escaneables en cambio los logos
+   de sus equipos si lo son)
+</div>
+<!--Termina Container GAMEOVER-->
+<div id="filtros" style="display:none;">
+  <button onclick="aplicarFiltro('none')">Normy</button>
+  <button onclick="aplicarFiltro('contrast(200%) saturate(150%) blur(1px)')">Pixel</button>
+  <button onclick="aplicarFiltro('blur(5px)')">Blur</button>
+  <button onclick="aplicarFiltro('hue-rotate(180deg)')"> 🟪</button>
+  <button onclick="aplicarFiltro('hue-rotate(180deg) saturate(300%)')">Termic</button>
+</div>
+  <button id="btnGuia" onclick="activarBoton(this); toggleGuia()">Guía</button>
+  <button id="btnGaleria" onclick="toggleGaleria()">Galería</button>
+ <button id="btnFoto" onclick="tomarFoto()">📸</button>
+ <!--INICIAR JUEGO-->
+ <button id="btnJuego" onclick="toggleJuego()">🎮 </button>
+ <div id="puntosJuego" style="
+position:fixed;
+top:70px;
+left:20px;
+background:black;
+color:white;
+padding:10px;
+border-radius:10px;
+z-index:99999;
+display:none;
+">
+Puntos: 0
+</div>
+
+<div id="juegoContainer">
+
+<h2>⚽ Atrapa el balón</h2>
+<div id="tiempoJuego">Tiempo: --</div>
+<div id="puntos">Puntos: 0</div>
+
+<button onclick="iniciarJuego()">Iniciar</button>
+<button onclick="toggleJuego()">Cerrar</button>
+<button onclick="reiniciarJuego()">🔄</button>
+<div id="zonaJuego"></div>
+<div id="gameOverPanel">
+
+<div class="gameBox">
+<h1>⚽ GAME OVER</h1>
+<p id="resultadoFinal"></p>
+<button onclick="cerrarJuego()">❌ Salir</button>
+
+</div>
+
+</div>
+</div>
+<!--<button id="startBtn" onclick="startAR()">Iniciar AR</button> -->
+<div id="infoPanel"></div>
+<div id="panelFlotante">
+  <div id="panelContenido"></div>
+  <button onclick="cerrarPanel()">Cerrar ✖</button>
+</div>
+
+<audio id="clickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+<!--<button onclick="cerrarVideo()">Cerrar Video</button> -->
+
+
+<script>
+function startAR(){
+  document.querySelector("a-scene").components["mindar-image-system"].start();
+}
+</script>
+
+<!--   NO MOVER EL A_SCENE POR ALGUNA RAZÖN SE ROMPE-->
+<a-scene
+  mindar-image="imageTargetSrc: targets.mind;"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false"
+  embedded
+  color-space="sRGB"
+  renderer="colorManagement: true; physicallyCorrectLights"
+>
+
+  <a-assets>
+  <a-asset-item id="Mexico" src="models/mexican_flag.glb"></a-asset-item>
+  <a-asset-item id="sudafrica" src="models/balon.glb"></a-asset-item>
+  <a-asset-item id="japon" src="models/japanese_castle.glb"></a-asset-item>
+  <a-asset-item id="Colombia" src="models/colombia.glb"></a-asset-item>
+  <a-asset-item id="uzbekistan" src="models/uzbekistan_flag.glb"></a-asset-item>
+  <a-asset-item id="Corea" src="models/south_korea.glb"></a-asset-item> 
+  <a-asset-item id="Uruguay" src="models/uruguay_flag.glb"></a-asset-item>
+  <a-asset-item id="Espana" src="models/bandera_espana_animada.glb"></a-asset-item>  
+  <a-asset-item id="tunez" src="models/post.glb"></a-asset-item>
+   <a-asset-item id="arabia" src="models/saudi_arabia.glb"></a-asset-item>
+ <a-asset-item id="caboverde" src="models/verde.glb"></a-asset-item>
+ <a-asset-item id="Checa" src="models/checa.glb"></a-asset-item>
+</a-assets>
+
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+<a-light type="ambient" intensity="0.8"></a-light>
+<a-light type="directional" position="1 2 1" intensity="0.6"></a-light>
+ <!-- Marcador 1 -->
+<a-entity mindar-image-target="targetIndex: 0">
+  <a-entity id="particulas" geometry="primitive: sphere; radius: 0.1" material="color: red"></a-entity>
+<a-gltf-model
+  id="modelo0"
+  src="#Mexico"
+  position="0 0 0"
+  scale="0.3 0.3 0.3">
+</a-gltf-model>
+</a-entity>
+<!-- Marcador 2 -->
+<a-entity mindar-image-target="targetIndex: 1">
+<a-gltf-model
+  id="modelo1"
+  src="#sudafrica"
+  position="0 0 0"
+  scale="0.3 0.3 0.3">
+</a-gltf-model>
+</a-entity>
+<!-- Marcador 3 -->
+<a-entity mindar-image-target="targetIndex: 2">
+<a-gltf-model
+  id="modelo2"
+  src="#japon"
+  position="0 -1 0"
+  scale="0.0007 0.0007 0.0007">
+</a-gltf-model>
+</a-entity>
+<a-entity mindar-image-target="targetIndex: 3">
+<a-gltf-model
+  id="modelo3"
+  src="#Colombia"
+  position="0 -.5 0"
+  scale="0.3 0.3 0.3">
+</a-gltf-model>
+</a-entity>
+<a-entity mindar-image-target="targetIndex: 4">
+<a-gltf-model
+  id="modelo4"
+  src="#uzbekistan"
+  position="0 -0.2 0"
+  scale="0.1 0.1 0.1">
+</a-gltf-model>
+</a-entity>
+<a-entity mindar-image-target="targetIndex: 5">
+<a-gltf-model
+  id="modelo5"
+  src="#Corea"
+  position="0 0 0"
+  scale="0.5 0.5 0.5">
+</a-gltf-model>
+</a-entity>
+<a-entity mindar-image-target="targetIndex: 6">
+<a-gltf-model
+  id="modelo6"
+  src="#Uruguay"
+  position="0 0 0"
+  scale="0.1 0.1 0.1">
+</a-gltf-model>
+</a-entity>
+<a-entity mindar-image-target="targetIndex: 7">
+<a-gltf-model
+  id="modelo7"
+  src="#Espana"
+  position="0 0 0"
+  scale="0.1 0.1 0.1">
+</a-gltf-model>
+</a-entity>
+<a-entity mindar-image-target="targetIndex: 8">
+<a-gltf-model
+  id="modelo8"
+  src="#tunez"
+  position="0 -1 0"
+  scale="0.05 0.05 0.05">
+</a-gltf-model>
+</a-entity>
+<!-- Marcador 10 -->
+<a-entity mindar-image-target="targetIndex: 9">
+<a-gltf-model
+  id="modelo9"
+  src="#arabia"
+  position="0 0 0"
+  scale="0.3 0.3 0.3">
+</a-gltf-model>
+</a-entity>
+<!-- Marcador 11 -->
+<a-entity mindar-image-target="targetIndex: 10">
+<a-gltf-model
+  id="modelo10"
+  src="#caboverde"
+  position="0 0 0"
+  scale="0.01 0.01 0.01">
+</a-gltf-model>
+</a-entity>
+<!-- Marcador 12 -->
+<a-entity mindar-image-target="targetIndex: 11">
+<a-gltf-model
+  id="modelo11"
+  src="#Checa"
+  position="0 0 0"
+  scale="0.03 0.03 0.03">
+</a-gltf-model>
+</a-entity>
+<!--PARTICULAS-->
+<!-- <a-entity id="particulas"particle-system="  preset: dust;    color: #FFD700, #FF0000, #00FF00;    size: 2;    particleCount: 0;"></a-entity>-->
+<a-entity id="particulas" geometry="primitive: sphere; radius: 0.1" material="color: red"></a-entity>
+<!--LUZ-->
+<a-light type="point" color="#FFD700" intensity="0" position="0 2 2" id="luzEfecto"></a-light>
+</a-scene>
+<!-- animación-->
+<script>
+  //Cuestionario
+  let preguntaActualIndice = 0;
+let puntajeTrivia = 0;
+  //lt anim
+  let animando = false;
+  //LETS DEL JUEGO
+  let puntos = 0;
+  let tiempoBalon;
+let juegoActivo = false;
+let tiempoLimite = 2000;   // tiempo inicial en ms
+let tiempoMinimo = 600;    // limite humano
+let temporizador = null;
+//Lets normales
+  let targetActivo = null;
+  //AQUI ESTA ANIMAR
+function animar() {
+  if (targetActivo === null) {
+    mostrarPanel("Primero escanea una imagen 👀");
+    return;
+  }
+  const modelo = document.querySelector(`#modelo${targetActivo}`);
+  const particulas = document.querySelector("#particulas");
+  const luz = document.querySelector("#luzEfecto");
+  if (!animando) {
+    modelo.setAttribute("animation", {
+      property: "rotation",
+      to: "0 360 0",
+      loop: true,
+      dur: 3000,
+      easing: "linear"
+    });
+    modelo.setAttribute("animation__scale", {
+      property: "scale",
+      to: "0.1 0.1 0.1",
+      dir: "alternate",
+      loop: 4,
+      dur: 500
+    });
+particulas.setAttribute("position", "0 2 0");
+particulas.setAttribute("particle-system", {
+  preset: "snow",
+  color: "#FFD700",
+  size: 0.4,
+  particleCount: 800,
+  velocityValue: "0 1 0"
+});
+    luz.setAttribute("animation", {
+  property: "intensity",
+  from: 2,
+  to: 6,
+  dir: "alternate",
+  loop: true,
+  dur: 300
+});
+    animando = true;
+  } else {
+    modelo.removeAttribute("animation");
+    modelo.removeAttribute("animation__scale");
+    particulas.setAttribute("particle-system", "particleCount: 0");
+    luz.removeAttribute("animation");
+luz.setAttribute("intensity", 0);
+    animando = false;
+  }
+}
+
+  //animar antiguo 
+//function animar() {
+ // if (targetActivo === null) {
+//mostrarPanel("Primero escanea una imagen 👀");
+//    return;
+//  }
+  //const modelo = document.querySelector(`#modelo${targetActivo}`);
+  // ROTACIÓN
+  //modelo.setAttribute("animation", {
+    //property: "rotation",
+    //to: "0 360 0",
+    //loop: true,
+    //dur: 3000,
+   // easing: "linear"
+ // });
+
+  // EFECTO DE ESCALA (rebote)
+  //modelo.setAttribute("animation__scale", {
+    //property: "scale",
+    //to: "0.1 0.1 0.1",
+    //dir: "alternate",
+    //loop: 4,
+    //dur: 500
+  //});
+  // ACTIVAR PARTÍCULAS
+ // const particulas = document.querySelector("#particulas");
+ // particulas.setAttribute("position", "0 0 0");
+ // particulas.setAttribute("particle-system", {
+ //   preset: "dust",
+   // color: "#FFD700,#FF0000,#00FF00",
+    //size: 20,
+    //particleCount: 400
+  //});
+  // Apagar después de 2 segundos
+  //setTimeout(() => {
+  //  particulas.setAttribute("particle-system", "particleCount: 0");
+  //}, 2000);
+  //la docu decia que para mover luz
+  //const luz = document.querySelector("#luzEfecto");
+//luz.setAttribute("intensity", 5);
+//setTimeout(() => {
+ // luz.setAttribute("intensity", 0);
+//}, 1500);
+//}
+//TERMINA ANIMAR
+//const 
+const fotosGaleria = [];
+//function de foto
+function tomarFoto(){
+
+  const video = document.querySelector("video");
+  const canvasAR = document.querySelector("a-scene canvas");
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  // dibujar cámara
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+  // dibujar AR
+  ctx.drawImage(canvasAR,0,0,canvas.width,canvas.height);
+
+  const imagen = canvas.toDataURL("image/png");
+
+  // descargar automáticamente
+  const link = document.createElement("a");
+  link.href = imagen;
+  link.download = "foto-ar.png";
+  link.click();
+
+  // mostrar en galería
+  agregarAGaleria(imagen);
+
+}
+//function ga
+function agregarAGaleria(src){
+
+  const galeria = document.getElementById("galeria");
+
+  const img = document.createElement("img");
+  img.src = src;
+
+  img.style.width = "120px";
+  img.style.margin = "6px";
+  img.style.borderRadius = "10px";
+
+  galeria.appendChild(img);
+
+}
+///GSALRTY
+function agregarFotoGaleria(src){
+
+  const contenedor = document.querySelector(".galeriaScroll");
+
+  const img = document.createElement("img");
+  img.src = src;
+
+  contenedor.prepend(img);
+
+}
+function descargarFoto(src){
+
+  const link = document.createElement("a");
+  link.href = src;
+  link.download = "foto-ar.png";
+  link.click();
+
+}
+// FUNCION INFORMACION
+function info() {
+
+  if (targetActivo === null) {
+mostrarPanel("Primero escanea una imagen 👀");
+    return;
+  }
+
+const infoCompleta = {
+  0: "México 🇲🇽\n\nSede oficial del Mundial 2026.\nDatos importantes:\n- Estadio Azteca\n- Estadio BBVA\nPaís con amplia tradición mundialista y presencia constante en Copas del Mundo.",
+  1: "Sudáfrica 🇿🇦\n\nPaís anfitrión del Mundial 2010.\nDatos importantes:\n- Primer mundial realizado en África\n- Impulso histórico al fútbol africano\nEvento clave para el desarrollo deportivo del continente.",
+  2: "Japón 🇯🇵\n\nSelección con crecimiento sostenido.\nDatos importantes:\n- Participaciones continuas desde 1998\n- Liga profesional altamente organizada\nEjemplo de desarrollo futbolístico en Asia.",
+  3: "Colombia 🇨🇴\n\nSelección representativa de Sudamérica.\nDatos importantes:\n- Clasificaciones frecuentes a mundiales\n- Estilo ofensivo y técnico\nReconocida por su talento individual y colectivo.",
+  4: "Uzbekistán 🇺🇿\n\nSelección emergente de Asia Central.\nDatos importantes:\n- Buen desarrollo en categorías juveniles\n- Participaciones destacadas a nivel regional\nFútbol en crecimiento con proyección internacional.",
+  5: "Corea del Sur 🇰🇷\n\nSelección constante en Copas del Mundo.\nDatos importantes:\n- Mejor resultado: Cuarto lugar en 2002\n- Alto nivel físico y táctico\nUna de las selecciones más fuertes de Asia.",
+  6: "Uruguay 🇺🇾\n\nSelección histórica del fútbol mundial.\nDatos importantes:\n- Campeón del mundo en 1930 y 1950\n- Múltiples títulos continentales\nReconocida por su garra y tradición futbolística.",
+  7: "España 🇪🇸\n\nSelección de élite europea.\nDatos importantes:\n- Campeón del mundo en 2010\n- Estilo de posesión y control\nUna de las generaciones más exitosas de su historia.",
+  8: "Túnez 🇹🇳\n\nRepresentante habitual de África.\nDatos importantes:\n- Clasificaciones constantes a mundiales\n- Fútbol disciplinado y competitivo\nSelección sólida dentro del continente africano.",
+  9: "Arabia Saudita 🇸🇦\n\nSelección representativa de Medio Oriente.\nDatos importantes:\n- Participaciones constantes en eliminatorias asiáticas\n- Clasificada a varios mundiales\n- Famosa por vencer a Argentina en el Mundial 2022\nEquipo competitivo dentro de la AFC.",
+10: "Cabo Verde 🇨🇻\n\nSelección emergente del fútbol africano.\nDatos importantes:\n- Gran crecimiento en la Copa Africana de Naciones\n- Jugadores destacados en ligas europeas\n- Equipo disciplinado y físico\nUno de los proyectos futbolísticos más interesantes de África.",
+11: "República Checa 🇨🇿\n\nSelección histórica del fútbol europeo.\nDatos importantes:\n- Subcampeón de la Eurocopa 1996\n- Gran tradición futbolística heredada de Checoslovaquia\n- Jugadores técnicos y tácticos\nEquipo competitivo dentro de UEFA."
+};
+mostrarPanel(infoCompleta[targetActivo]);
+
+}
+// la documentación decia esto pero si la funcion 4 no funciona hay que limpiar
+document.addEventListener("DOMContentLoaded", () => {
+
+  const infoPanel = document.getElementById("infoPanel");
+
+ // const infoData = {
+//  0: "<h3>México 🇲🇽</h3><p>Sede oficial del Mundial 2026</p>",
+//  1: "<h3>Sudáfrica 🇿🇦</h3><p>Anfitrión del Mundial 2010</p>",
+//  2: "<h3>Japón 🇯🇵</h3><p>Desarrollo futbolístico destacado</p>",
+//  3: "<h3>Colombia 🇨🇴</h3><p>Selección histórica de Sudamérica</p>",
+//  4: "<h3>Uzbekistán 🇺🇿</h3><p>Fútbol emergente en Asia Central</p>",
+//  5: "<h3>Corea del Sur 🇰🇷</h3><p>Potencia asiática constante</p>",
+//  6: "<h3>Uruguay 🇺🇾</h3><p>Bicampeón del mundo</p>",
+//  7: "<h3>España 🇪🇸</h3><p>Campeón del mundo 2010</p>",
+//  8: "<h3>Túnez 🇹🇳</h3><p>Representante africano frecuente</p>"
+// };
+const infoData = {
+  0: `
+    <div class="resumen-detectado">
+      <h3>México 🇲🇽</h3>
+      <p>Sede oficial del Mundial 2026 y tambien uno de los paises donde lo irreal a la hora de jugar es posible</p>
+    </div>
+  `,
+  1: `
+    <div class="resumen-detectado">
+      <h3>Sudáfrica 🇿🇦</h3>
+      <p>Anfitrión del Mundial 2010 y en su momento el favorito pues presento a muchas grandes promesas ese mismo año</p>
+    </div>
+  `,
+  2: `
+    <div class="resumen-detectado">
+      <h3>Japón</h3>
+      <p>Aunque muchos tienen sus dudas, el equipo de japón a logrado hacer frente a equipos bastante complicados</p>
+    </div>
+  `,
+  3:  `
+    <div class="resumen-detectado">
+      <h3>Colombia</h3>
+      <p>No solo cuenta con una gran y amplia cultura, es uno de los paises con más que buena trayectoria en cuanto a las clasificaciónes, en la mayoria de ocasiones no tienen problemas para clasificar.</p>
+    </div>
+  `,
+  4:  `
+    <div class="resumen-detectado">
+      <h3>UZBEKISTAN</h3>
+      <p>Por PRIMERA vez en sus historia logro hacerse paso entre gigantes del futból, consiguiendo este logro despues de años de intenso esfuerzo</p>
+    </div>
+  `,
+  5:  `
+    <div class="resumen-detectado">
+      <h3>Corea Del Sur</h3>
+      <p>Definitivamente un equipo muy dedicado, aunque no es el favorito de todos, ah logrado mantenerse dentro de lo que cabe una buena posición</p>
+    </div>
+  `,
+  6:  `
+    <div class="resumen-detectado">
+      <h3>Uruguay</h3>
+      <p>Si algo caracterisa a uruguay es que incluso cuando todo parece perdido, siempre ah logrado mantener una estrategia solida, centrados casi siempre en defender pero cuando toca correr no hay quien los pare</p>
+    </div>
+  `,
+  7:  `
+    <div class="resumen-detectado">
+      <h3>España</h3>
+      <p>Un pais con amplia hostoria, con una trayectoria bastante decente en el futbol.</p>
+    </div>
+  `,
+  8:  `
+    <div class="resumen-detectado">
+      <h3>Tunéz</h3>
+      <p>Pais con una gran cantidad de intentos ante las ultimas etapas de selección, pero pocas veces vistos despues de los 8vos de final o 4tos de final.</p>
+    </div>
+  `,
+  9: `
+<div class="resumen-detectado">
+  <h3>Arabia Saudita 🇸🇦</h3>
+  <p>Selección asiática conocida por su histórica victoria ante Argentina en el Mundial 2022.</p>
+</div>
+`,
+10: `
+<div class="resumen-detectado">
+  <h3>Cabo Verde 🇨🇻</h3>
+  <p>Equipo africano emergente que ha crecido mucho en competiciones continentales.</p>
+</div>
+`,
+11: `
+<div class="resumen-detectado">
+  <h3>República Checa 🇨🇿</h3>
+  <p>Selección europea con gran historia y herencia del fútbol de Checoslovaquia.</p>
+</div>
+`
+};
+
+  for (let i = 0; i < 12; i++) {
+    const target = document.querySelector(`[mindar-image-target="targetIndex: ${i}"]`);
+
+   target.addEventListener("targetFound", () => {
+  targetActivo = i;
+  infoPanel.innerHTML = infoData[i];
+});
+
+    target.addEventListener("targetLost", () => {
+  targetActivo = null;
+  infoPanel.innerHTML = "";
+});
+  }
+
+});
+//AQUI inicia la trivia (antigua)
+//function trivia() {
+ // if (targetActivo === null) {
+ //   mostrarPanel("Primero escanea una imagen 👀");
+//    return; }
+//  const p = preguntas[targetActivo];
+//  let html = `<h3>${p.pregunta}</h3>`;
+ // p.opciones.forEach((opcion, index) => {
+ //   html += `
+ //     <button onclick="responderTrivia(${index}, ${p.correcta})"
+ //       ${opcion}
+ //     </button>
+ //   `;
+ // });
+ // mostrarPanel(html);
+//}
+//function responderTrivia(seleccion, correcta) {
+ // if (seleccion === correcta) {
+ //   mostrarPanel("✅ ¡Respuesta correcta!\nBuen trabajo 👏");
+//  } else {
+ //   mostrarPanel("❌ Respuesta incorrecta.\nInténtalo de nuevo.");
+ // }
+//}
+//const preguntas = {
+//  0: {
+//    pregunta: "¿En qué estadio se jugará la final en México?",
+//    opciones: ["Estadio Azteca", "Estadio BBVA", "Estadio Jalisco"],
+ //   correcta: 0
+ // },
+ // 1: {
+//    pregunta: "¿En qué año se celebró el Mundial en Sudáfrica?",
+//    opciones: ["2006", "2010", "2014"],
+ //   correcta: 1
+//  },
+//  2: {
+//    pregunta: "¿Desde qué año participa Japón constantemente en mundiales?",
+//    opciones: ["1998", "2006", "2014"],
+//    correcta: 0
+//  },
+//  3: {
+ //   pregunta: "¿A qué confederación pertenece Colombia?",
+ //   opciones: ["CONCACAF", "CONMEBOL", "UEFA"],
+ //   correcta: 1
+ // },
+ // 4: {
+ //   pregunta: "¿En qué continente se encuentra Uzbekistán?",
+ //   opciones: ["Europa", "Asia", "África"],
+ //   correcta: 1
+ // },
+ // 5: {
+ //   pregunta: "¿Cuál fue el mejor resultado de Corea del Sur en un mundial?",
+ //   opciones: ["Cuartos de final", "Cuarto lugar", "Final"],
+ //   correcta: 1
+ // },
+ // 6: {
+ //   pregunta: "¿Cuántas Copas del Mundo ha ganado Uruguay?",
+ //   opciones: ["1", "2", "3"],
+ //   correcta: 1
+ // },
+ // 7: {
+ //   pregunta: "¿En qué año España ganó el Mundial?",
+ //   opciones: ["2006", "2010", "2014"],
+ //   correcta: 1
+ // },
+ // 8: {
+ //   pregunta: "¿A qué confederación pertenece Túnez?",
+ //   opciones: ["CAF", "AFC", "CONMEBOL"],
+ //   correcta: 0
+ // },
+ // 9: {
+ // pregunta: "¿A qué confederación pertenece Arabia Saudita?",
+ // opciones: ["AFC", "CAF", "UEFA"],
+ // correcta: 0
+//},
+//10: {
+//  pregunta: "¿En qué continente se encuentra Cabo Verde?",
+//  opciones: ["África", "Asia", "Europa"],
+//  correcta: 0
+//},
+//11: {
+//  pregunta: "¿En qué continente juega la República Checa?",
+//  opciones: ["Europa", "Asia", "América"],
+//  correcta: 0
+//}
+//};
+
+//INICIA TRIVIA NUEVA
+function trivia() {
+  if (targetActivo === null) {
+    mostrarPanel("Primero escanea una imagen 👀");
+    return;
+  }
+  preguntaActualIndice = 0;
+  puntajeTrivia = 0;
+  cargarPregunta();
+}
+function cargarPregunta() {
+  const listaPreguntas = preguntas[targetActivo];
+  if (!listaPreguntas || preguntaActualIndice >= listaPreguntas.length) {
+    mostrarPanel(`🏆 ¡Trivia terminada!<br>Puntaje: ${puntajeTrivia} de ${listaPreguntas.length}`);
+    return;
+  }
+  const p = listaPreguntas[preguntaActualIndice];
+  let html = `<h3>Pregunta ${preguntaActualIndice + 1}</h3>`;
+  html += `<p>${p.pregunta}</p>`;
+  p.opciones.forEach((opcion, index) => {
+    html += `
+      <button onclick="verificarRespuesta(${index}, ${p.correcta})" style="display:block; width:100%; margin-bottom:5px;">
+        ${opcion}
+      </button>
+    `;
+  });  mostrarPanel(html);
+}
+function verificarRespuesta(seleccion, correcta) {
+  const listaPreguntas = preguntas[targetActivo];
+  if (seleccion === correcta) {
+    puntajeTrivia++;
+  }
+  preguntaActualIndice++;
+  setTimeout(cargarPregunta, 300); 
+}
+
+const preguntas = {
+  0: [ // México
+    { pregunta: "¿En qué estadio se jugará la inauguración del Mundial 2026 en México?", opciones: ["Estadio Azteca", "Estadio BBVA", "Estadio Akron"], correcta: 0 },
+    { pregunta: "¿Cuántas veces habrá sido sede México con el Mundial 2026?", opciones: ["2 veces", "3 veces", "4 veces"], correcta: 1 },
+    { pregunta: "¿Quién es el máximo goleador histórico de la selección mexicana?", opciones: ["Hugo Sánchez", "Javier 'Chicharito' Hernández", "Raúl Jiménez"], correcta: 1 },
+    { pregunta: "¿Cuál fue el mejor resultado de México en un Mundial (1970 y 1986)?", opciones: ["Octavos de final", "Cuartos de final", "Semifinal"], correcta: 1 },
+    { pregunta: "¿Cómo se le conoce popularmente a la selección de México?", opciones: ["La Roja", "El Tri", "La Albiceleste"], correcta: 1 }
+  ],
+  1: [ // Sudáfrica
+    { pregunta: "¿En qué año se celebró el primer mundial en territorio africano (Sudáfrica)?", opciones: ["2006", "2010", "2014"], correcta: 1 },
+    { pregunta: "¿Cómo se llamaba la famosa trompeta ruidosa usada en ese mundial?", opciones: ["Vuvuzela", "Zubizela", "Marimba"], correcta: 0 },
+    { pregunta: "¿Cuál es el apodo de la selección de Sudáfrica?", opciones: ["Bafana Bafana", "Las Águilas", "Los Leones"], correcta: 0 },
+    { pregunta: "¿Quién anotó el primer gol del mundial de Sudáfrica 2010?", opciones: ["Siphiwe Tshabalala", "Diego Forlán", "Andrés Iniesta"], correcta: 0 },
+    { pregunta: "¿Contra qué equipo jugó Sudáfrica el partido inaugural en 2010?", opciones: ["Francia", "Uruguay", "México"], correcta: 2 }
+  ],
+  2: [ // Japón
+    { pregunta: "¿Con qué país compartió Japón la sede del Mundial 2002?", opciones: ["China", "Corea del Sur", "Tailandia"], correcta: 1 },
+    { pregunta: "¿Cuál es el apodo de la selección japonesa?", opciones: ["Los Dragones", "Samuráis Blue", "Tigres de Asia"], correcta: 1 },
+    { pregunta: "¿A qué ronda ha llegado Japón en sus mejores participaciones?", opciones: ["Cuartos de final", "Octavos de final", "Fase de grupos"], correcta: 1 },
+    { pregunta: "¿Desde qué año Japón no ha faltado a ninguna cita mundialista?", opciones: ["1998", "1994", "2002"], correcta: 0 },
+    { pregunta: "¿Cuál es el color principal de su uniforme local?", opciones: ["Rojo", "Blanco", "Azul"], correcta: 2 }
+  ],
+  3: [ // Colombia
+    { pregunta: "¿Quién fue el goleador del Mundial de Brasil 2014 con Colombia?", opciones: ["Radamel Falcao", "James Rodríguez", "Juan Cuadrado"], correcta: 1 },
+    { pregunta: "¿Cuál es el apodo de la selección colombiana?", opciones: ["La Tricolor", "Los Cafeteros", "Ambas son correctas"], correcta: 2 },
+    { pregunta: "¿En qué mundial Colombia anotó un gol olímpico?", opciones: ["Chile 1962", "Italia 1990", "Francia 1998"], correcta: 0 },
+    { pregunta: "¿Cuál ha sido la mejor posición de Colombia en un mundial?", opciones: ["Octavos de final", "Cuartos de final", "Tercer lugar"], correcta: 1 },
+    { pregunta: "¿Quién es el legendario portero colombiano famoso por 'el escorpión'?", opciones: ["David Ospina", "Faryd Mondragón", "René Higuita"], correcta: 2 }
+  ],
+  4: [ // Uzbekistán
+    { pregunta: "¿A qué confederación pertenece Uzbekistán?", opciones: ["UEFA (Europa)", "AFC (Asia)", "CAF (África)"], correcta: 1 },
+    { pregunta: "¿Cuál es el apodo de su selección?", opciones: ["Los Lobos Blancos", "Los Halcones", "Los Leopardos"], correcta: 0 },
+    { pregunta: "¿Ha clasificado Uzbekistán alguna vez a un mundial de mayores?", opciones: ["Sí", "No (Estuvo muy cerca en 2014)", "Sí, en 2006"], correcta: 1 },
+    { pregunta: "¿Qué selección es su rival histórico en Asia Central?", opciones: ["Japón", "Kazajistán", "Australia"], correcta: 1 },
+    { pregunta: "¿Cuál es el color de su bandera que predomina en su uniforme?", opciones: ["Verde", "Azul y Blanco", "Rojo"], correcta: 1 }
+  ],
+  5: [ // Corea del Sur
+    { pregunta: "¿Cuál fue el histórico puesto que ocupó Corea del Sur en 2002?", opciones: ["Campeón", "Cuarto lugar", "Subcampeón"], correcta: 1 },
+    { pregunta: "¿Cuál es el apodo de esta selección?", opciones: ["Guerreros Taeguk", "Estrellas Rojas", "Dragones del Sur"], correcta: 0 },
+    { pregunta: "¿Cuántas clasificaciones seguidas lleva Corea del Sur?", opciones: ["5", "8", "11"], correcta: 2 },
+    { pregunta: "¿Quién es su estrella actual que juega en el Tottenham de Inglaterra?", opciones: ["Son Heung-min", "Park Ji-sung", "Hwang Hee-chan"], correcta: 0 },
+    { pregunta: "¿A qué potencia europea eliminó Corea del Sur en Rusia 2018?", opciones: ["Italia", "Alemania", "España"], correcta: 1 }
+  ],
+  6: [ // Uruguay
+    { pregunta: "¿Cuántos mundiales ha ganado Uruguay según la FIFA?", opciones: ["1", "2", "4"], correcta: 1 },
+    { pregunta: "¿En qué año se jugó el primer mundial de la historia (en Uruguay)?", opciones: ["1924", "1930", "1950"], correcta: 1 },
+    { pregunta: "¿Cómo se llamó la histórica victoria de Uruguay sobre Brasil en 1950?", opciones: ["Maracanazo", "Mineirazo", "Milagro de Berna"], correcta: 0 },
+    { pregunta: "¿Quién es el máximo goleador histórico de Uruguay?", opciones: ["Diego Forlán", "Edinson Cavani", "Luis Suárez"], correcta: 2 },
+    { pregunta: "¿Cuál es el color de la camiseta de Uruguay?", opciones: ["Azul marino", "Celeste", "Azul Francia"], correcta: 1 }
+  ],
+  7: [ // España
+    { pregunta: "¿En qué año ganó España su primer y único mundial?", opciones: ["2006", "2010", "2014"], correcta: 1 },
+    { pregunta: "¿A qué equipo venció España en la final de Sudáfrica 2010?", opciones: ["Alemania", "Países Bajos", "Argentina"], correcta: 1 },
+    { pregunta: "¿Quién anotó el gol de la victoria en la final de 2010?", opciones: ["David Villa", "Fernando Torres", "Andrés Iniesta"], correcta: 2 },
+    { pregunta: "¿Cómo se le conoce a la selección española?", opciones: ["La Furia Roja", "La Naranja Mecánica", "Los Galos"], correcta: 0 },
+    { pregunta: "¿En qué país se celebró el mundial de 1982 donde España fue sede?", opciones: ["España", "México", "Italia"], correcta: 0 }
+  ],
+  8: [ // Túnez
+    { pregunta: "¿A qué confederación pertenece Túnez?", opciones: ["CAF (África)", "AFC (Asia)", "UEFA"], correcta: 0 },
+    { pregunta: "¿Cuál es el apodo de la selección tunecina?", opciones: ["Las Águilas de Cartago", "Los Faraones", "Los Elefantes"], correcta: 0 },
+    { pregunta: "¿Cuál fue el primer país africano en ganar un partido en un mundial (1978)?", opciones: ["Egipto", "Nigeria", "Túnez"], correcta: 2 },
+    { pregunta: "¿Cuántas veces ha pasado Túnez de la fase de grupos?", opciones: ["1 vez", "Nunca", "2 veces"], correcta: 1 },
+    { pregunta: "¿Cuál es el color principal de su bandera y uniforme?", opciones: ["Verde", "Rojo y Blanco", "Azul"], correcta: 1 }
+  ],
+  9: [ // Arabia Saudita
+    { pregunta: "¿A qué selección histórica venció Arabia Saudita en Qatar 2022?", opciones: ["Francia", "Argentina", "Brasil"], correcta: 1 },
+    { pregunta: "¿Cuál es el apodo de la selección saudí?", opciones: ["Los Halcones Verdes", "Los Caballeros", "Los Tigres"], correcta: 0 },
+    { pregunta: "¿Cuál ha sido su mejor participación (Octavos de final)?", opciones: ["USA 1994", "Francia 1998", "Qatar 2022"], correcta: 0 },
+    { pregunta: "¿En qué continente compite Arabia Saudita?", opciones: ["África", "Asia", "Oceanía"], correcta: 1 },
+    { pregunta: "¿Cuál es el color predominante de su uniforme?", opciones: ["Blanco", "Verde", "Ambos"], correcta: 2 }
+  ],
+  10: [ // Cabo Verde
+    { pregunta: "¿Cabo Verde ha clasificado alguna vez a un Mundial de mayores?", opciones: ["Sí", "No", "Sí, en 2010"], correcta: 1 },
+    { pregunta: "¿Cuál es el apodo de la selección de Cabo Verde?", opciones: ["Tiburones Azules", "Leones Marinos", "Delfines"], correcta: 0 },
+    { pregunta: "¿En qué torneo continental ha destacado recientemente?", opciones: ["Copa América", "Eurocopa", "Copa Africana de Naciones"], correcta: 2 },
+    { pregunta: "¿Qué idioma se habla principalmente en Cabo Verde?", opciones: ["Español", "Portugués", "Francés"], correcta: 1 },
+    { pregunta: "¿A qué confederación pertenecen?", opciones: ["CONCACAF", "CAF (África)", "AFC"], correcta: 1 }
+  ],
+  11: [ // Rep. Checa
+    { pregunta: "¿De qué antiguo país formaba parte la República Checa?", opciones: ["Yugoslavia", "Checoslovaquia", "Unión Soviética"], correcta: 1 },
+    { pregunta: "¿Qué posición alcanzó Checoslovaquia en los mundiales de 1934 y 1962?", opciones: ["Campeón", "Subcampeón", "Tercero"], correcta: 1 },
+    { pregunta: "¿Quién es el máximo goleador histórico de la República Checa?", opciones: ["Jan Koller", "Milan Baros", "Pavel Nedved"], correcta: 0 },
+    { pregunta: "¿Cómo se llama su jugador más legendario ganador del Balón de Oro 2003?", opciones: ["Petr Cech", "Pavel Nedved", "Tomas Rosicky"], correcta: 1 },
+    { pregunta: "¿A qué confederación pertenece?", opciones: ["UEFA (Europa)", "AFC", "CONMEBOL"], correcta: 0 }
+  ]
+};
+//aqui inicia estadisticas
+function estadisticas() {
+
+  if (targetActivo === null) {
+    mostrarPanel("Primero escanea una imagen 👀");
+    return;
+  }
+//ESTADISTICAS A MOSTRAR
+const datos = {
+  0: "México 🇲🇽\n\n⚽ Participaciones: 17\n🏆 Mejor resultado: Cuartos de Final\n📊 Ranking FIFA aprox: Top 15",
+  1: "Sudáfrica 🇿🇦\n\n⚽ Participaciones: 3\n🏆 Mejor resultado: Cuartos de Final (2010)\n📊 Ranking FIFA aprox: Top 70",
+  2: "Japón 🇯🇵\n\n⚽ Participaciones: 7\n🏆 Mejor resultado: Octavos de Final\n📊 Ranking FIFA aprox: Top 20",
+  3: "Colombia 🇨🇴\n\n⚽ Participaciones: 6\n🏆 Mejor resultado: Cuartos de Final\n📊 Ranking FIFA aprox: Top 15",
+  4: "Uzbekistán 🇺🇿\n\n⚽ Participaciones: 0\n🏆 Mejor resultado: Clasificaciones juveniles destacadas\n📊 Ranking FIFA aprox: Top 70",
+  5: "Corea del Sur 🇰🇷\n\n⚽ Participaciones: 11\n🏆 Mejor resultado: Cuarto lugar (2002)\n📊 Ranking FIFA aprox: Top 25",
+  6: "Uruguay 🇺🇾\n\n⚽ Participaciones: 14\n🏆 Copas del Mundo: 2 (1930, 1950)\n📊 Ranking FIFA aprox: Top 15",
+  7: "España 🇪🇸\n\n⚽ Participaciones: 16\n🏆 Copas del Mundo: 1 (2010)\n📊 Ranking FIFA aprox: Top 10",
+  8: "Túnez 🇹🇳\n\n⚽ Participaciones: 6\n🏆 Mejor resultado: Fase de grupos\n📊 Ranking FIFA aprox: Top 30",
+  9: "Arabia Saudi 🇪🇸\n\n⚽ Participaciones: 16\n🏆 Copas del Mundo: 1 (2010)\n📊 Ranking FIFA aprox: Top 10",
+  10: "Cabo verde🇹🇳\n\n⚽ Participaciones: 6\n🏆 Mejor resultado: Fase de grupos\n📊 Ranking FIFA aprox: Top 30",
+ 11: "República Checa 🇹🇳\n\n⚽ Participaciones: 6\n🏆 Mejor resultado: Fase de grupos\n📊 Ranking FIFA aprox: Top 30"
+};
+
+mostrarPanel(datos[targetActivo]);
+}
+//AQUI MUESTRA VIDEO
+let videoAbierto = false;
+let guiaAbierta = false;
+function toggleVideo() {
+
+  if (targetActivo === null && !videoAbierto) {
+mostrarPanel("Primero escanea una imagen 👀");
+    return;
+  }
+
+  const btn = document.getElementById("btnVideo");
+
+  if (!videoAbierto) {
+//agregar videos correspondientes
+
+const videos = {
+  0: "videos/mexico.mp4",
+  1: "videos/sudafrica.mp4",
+  2: "videos/japon.mp4",
+  3: "videos/colombia.mp4",
+  4: "videos/uzbekistan.mp4",
+  5: "videos/corea.mp4",
+  6: "videos/uruguay.mp4",
+  7: "videos/espana.mp4",
+  8: "videos/tunez.mp4",
+  9: "videos/arabia.mp4",
+  10: "videos/cabo.mp4",
+  11: "videos/checa.mp4"
+};
+
+    document.getElementById("videoContainer").innerHTML =
+      `<video id="miVideo" controls width="300">
+          <source src="${videos[targetActivo]}" type="video/mp4">
+       </video>`;
+
+    document.getElementById("filtros").style.display = "block";
+    document.querySelector("a-scene").style.pointerEvents = "none";
+
+    btn.innerText = "Cerrar Video";
+    videoAbierto = true;
+
+  } else {
+
+    document.getElementById("videoContainer").innerHTML = "";
+    document.getElementById("filtros").style.display = "none";
+    document.querySelector("a-scene").style.pointerEvents = "auto";
+
+    btn.innerText = "✨🎬";
+    videoAbierto = false;
+    btn.classList.remove("activo");
+  }
+  
+}
+
+function aplicarFiltro(filtro) {
+  const video = document.getElementById("miVideo");
+  if (video) {
+    video.style.filter = filtro;
+  }
+}
+function activarBoton(boton) {
+
+  sonidoClick();
+
+  document.querySelectorAll("#ui button").forEach(b => {
+    b.classList.remove("activo");
+  });
+
+  boton.classList.add("activo");
+}
+function mostrarPanel(texto) {
+  const panel = document.getElementById("panelFlotante");
+  const contenido = document.getElementById("panelContenido");
+
+  contenido.innerHTML = texto.replace(/\n/g, "<br>");
+  panel.classList.add("mostrar");
+}
+
+function cerrarPanel() {
+  document.getElementById("panelFlotante").classList.remove("mostrar");
+}
+
+function sonidoClick() {
+  document.getElementById("clickSound").play();
+}
+function toggleGuia() {
+
+  const btn = document.getElementById("btnGuia");
+
+  if (!guiaAbierta) {
+
+    document.getElementById("videoContainer").innerHTML =
+      `<video id="videoGuia" controls width="300">
+        <source src="GUIA.mp4" type="video/mp4">
+      </video>`;
+
+    document.querySelector("a-scene").style.pointerEvents = "none";
+
+    btn.innerText = "Cerrar Guía";
+    guiaAbierta = true;
+
+  } else {
+
+    document.getElementById("videoContainer").innerHTML = "";
+    document.querySelector("a-scene").style.pointerEvents = "auto";
+
+    btn.innerText = "Guía";
+    guiaAbierta = false;
+    btn.classList.remove("activo");
+
+  }
+}
+
+function toggleGaleria(){
+
+  const galeria = document.getElementById("galeriaContainer");
+
+  if(galeria.style.display === "block"){
+    galeria.style.display = "none";
+  }else{
+    galeria.style.display = "block";
+  }
+
+}
+
+function cargarGaleria(){
+
+  const galeria = document.getElementById("galeria");
+
+  fotosGuardadas.forEach(src => {
+
+    const img = document.createElement("img");
+    img.src = src;
+    img.style.width = "120px";
+    img.style.margin = "5px";
+
+    galeria.appendChild(img);
+
+  });
+
+}
+window.onload = cargarGaleria;
+//JUEGO
+function toggleJuego(){
+const cont = document.getElementById("juegoContainer");
+if(cont.style.display === "block"){
+cont.style.display = "none";
+juegoActivo = false;
+}else{
+cont.style.display = "block";
+}
+}
+
+function iniciarJuego(){
+
+clearTimeout(tiempoBalon);
+clearTimeout(temporizador);
+
+const zona = document.getElementById("zonaJuego");
+zona.innerHTML = "";
+
+puntos = 0;
+juegoActivo = true;
+
+tiempoLimite = 2000;        
+
+document.getElementById("puntos").innerText = "Puntos: 0";
+document.getElementById("tiempoJuego").innerText = "Tiempo: --";
+
+document.getElementById("gameOverPanel").style.display = "none";
+
+aparecerBalon();
+}
+function aparecerBalon(){
+  if(!juegoActivo) return;
+  const zona = document.getElementById("zonaJuego");
+  const balon = document.createElement("div");
+  balon.innerText = "⚽";
+  balon.className = "balon";
+  balon.style.left = Math.random()*80 + "%";
+  balon.style.top = Math.random()*80 + "%";
+  zona.appendChild(balon);
+  // si ya pasaste 5 puntos empieza el temporizador
+  if(puntos >= 5){
+    document.getElementById("tiempoJuego").innerText =
+      "Tiempo: " + (tiempoLimite/1000).toFixed(1) + "s";
+    temporizador = setTimeout(gameOver, tiempoLimite);
+  }
+  balon.onclick = function(){
+    if(temporizador) clearTimeout(temporizador);
+    puntos++;
+    document.getElementById("puntos").innerText =
+      "Puntos: " + puntos;
+    balon.remove();
+    // reducir tiempo progresivamente
+    if(puntos >= 5){
+      tiempoLimite -= 150;
+      if(tiempoLimite < tiempoMinimo){
+        tiempoLimite = tiempoMinimo;
+      }
+    }
+    tiempoBalon = setTimeout(aparecerBalon,500);
+  };
+}
+function gameOver(){
+juegoActivo = false;
+clearTimeout(tiempoBalon);
+clearTimeout(temporizador);
+document.getElementById("resultadoFinal").innerText =
+"Puntuación final: " + puntos;
+document.getElementById("gameOverPanel").style.display = "block";
+}
+function reiniciarJuego(){
+  iniciarJuego();
+}
+function cerrarJuego(){
+document.getElementById("gameOverPanel").style.display = "none";
+juegoActivo = false;
+}
+</script>
+
+</body>
+</html>
