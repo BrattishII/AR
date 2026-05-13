@@ -1,5 +1,6 @@
 # AR
 AR_STUDY_P
+ACLARACION importante, el proyecto aun hace falta de 2 carpetas,falta la carpeta "videos" y "models" debido a su peso original
 Documentación Estructurada 
 1. Introducción al Proyecto 
 AR Mundial 2026 es una aplicación de Realidad Aumentada basada en web que transforma el 
